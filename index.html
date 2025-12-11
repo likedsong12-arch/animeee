@@ -1503,10 +1503,27 @@
             const amHost = isHost();
 
             // Local sync lock (Anti-Echo)
-            if (isSyncing || !youtubePlayer || !playerReady) {
-                if (isSyncing) console.log("[Sync] Locked (isSyncing)");
-                if (!youtubePlayer) console.log("[Sync] Locked (no youtubePlayer)");
-                if (!playerReady) console.log("[Sync] Locked (player not ready)");
+            // Local sync lock (Anti-Echo)
+            if (isSyncing) {
+                console.log("[Sync] Locked (isSyncing)");
+                return;
+            }
+
+            // AUTO-INIT: If player doesn't exist but room has video, create it!
+            if (!youtubePlayer) {
+                if (room.currentVideoId) {
+                    console.log("[Sync] Auto-initializing player for Viewer");
+                    createYouTubePlayer(room.currentVideoId);
+                    // Player creation is async (iframe load), so we can't sync immediately.
+                    // The player will auto-play, and subsequent syncs will align time.
+                    return;
+                }
+                console.log("[Sync] Locked (no youtubePlayer and no videoId)");
+                return;
+            }
+
+            if (!playerReady) {
+                console.log("[Sync] Locked (player not ready)");
                 return;
             }
 
@@ -2022,3 +2039,4 @@
 </body>
 
 </html>
+
